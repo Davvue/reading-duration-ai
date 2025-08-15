@@ -1,16 +1,30 @@
+import csv
 import random
 import re
 from collections import defaultdict
+import os
 import json
 
 config = {
-    "CORPUS_FILE": "./corpus/large.txt",
-    "CHAIN_ORDER": 3,
-    "MIN_SENTENCE_LEN": 8,
-    "MAX_SENTENCE_LEN": 30,
-    "NUM_SENTENCES": 5,
-    "NUM_PARAGRAPHS": 1,
-    "PARAGRAPH_SENTENCE_VARIATION": 2
+	"RESULT_AUTHOR": "",
+	"RESULT_DIRECTORY": "./results",
+	"RESULT_FILE": "result.csv",
+	"RESULT_ENTRIES": [
+		"author",
+		"file_path",
+		"start_timestamp",
+		"end_timestamp",
+		"language_proficiency"
+	],
+	"LANGUAGE_PROFICIENCY": 0.5,
+	"DATA_DIRECTORY": "./data",
+	"CORPUS_FILE": "./corpus/large.txt",
+	"CHAIN_ORDER": 3,
+	"MIN_SENTENCE_LEN": 8,
+	"MAX_SENTENCE_LEN": 30,
+	"NUM_SENTENCES": 5,
+	"NUM_PARAGRAPHS": 1,
+	"PARAGRAPH_SENTENCE_VARIATION": 2
 }
 
 def load_config(json_file):
@@ -74,7 +88,25 @@ def generate_text_blob(
     
     return "\n\n".join(paragraphs)
 
+def write_result_line(file_path, start, end):
+    with open(os.path.join(config["RESULT_DIRECTORY"], config["RESULT_FILE"]), "a") as f:
+        writer = csv.writer(f)
+        writer.writerow([config["RESULT_AUTHOR"], file_path, start, end, config["LANGUAGE_PROFICIENCY"]])
+
+def ensure_folder_structure():
+    if not os.path.exists(config["DATA_DIRECTORY"]):
+        os.makedirs(config["DATA_DIRECTORY"])
+
+    if not os.path.exists(config["RESULT_DIRECTORY"]):
+        os.makedirs(config["RESULT_DIRECTORY"])
+
+    if not os.path.exists(os.path.join(config["RESULT_DIRECTORY"], config["RESULT_FILE"])):
+        with open(os.path.join(config["RESULT_DIRECTORY"], config["RESULT_FILE"]), "w") as f:
+            writer = csv.writer(f)
+            writer.writerow(config["RESULT_ENTRIES"])
+
 # ===== Example usage =====
 if __name__ == "__main__":
     load_config("./config.json")
+    ensure_folder_structure()
     print(generate_text_blob(config["NUM_SENTENCES"], config["NUM_PARAGRAPHS"]))
