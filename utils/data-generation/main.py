@@ -24,6 +24,12 @@ config = {
 	"CHAIN_ORDER": 3,
 	"MIN_SENTENCE_LEN": 8,
 	"MAX_SENTENCE_LEN": 30,
+	"RUN_CONFIGURATIONS": [
+		{
+			"SENTENCES": 5,
+			"PARAGRAPHS": 1
+		}
+	],
 	"NUM_SENTENCES": 5,
 	"NUM_PARAGRAPHS": 1,
 	"PARAGRAPH_SENTENCE_VARIATION": 2
@@ -116,9 +122,18 @@ def ensure_folder_structure():
 
 def main():
     first_run = True
+    config_index = 0
+
+    print(f"There are {len(config["RUN_CONFIGURATIONS"])} runs configured.")
+    print(f"After the first batch of configured runs, you can choose to quit or continue after each run.\n")
 
     while True:
-        blob = generate_text_blob(config["NUM_SENTENCES"], config["NUM_PARAGRAPHS"])
+        current_config = config["RUN_CONFIGURATIONS"][config_index]
+
+        blob = generate_text_blob(
+            current_config.get("SENTENCES", config["NUM_SENTENCES"]),
+            current_config.get("PARAGRAPHS", config["NUM_PARAGRAPHS"])
+        )
 
         print("You'll be prompted with one or multiple paragraphs of randomly generated text. When you're done reading, press the enter key")
         input("Press enter when you're ready\n")
@@ -134,8 +149,13 @@ def main():
         file_path, file_name = write_text_blob(blob)
         write_result_line(file_path, start, end)
 
-        if input("Continue? [Y]es/[N]o ").lower() == "n":
+
+        if not first_run and input("Continue? [Y]es/[N]o ").lower() == "n":
             break
+
+        config_index = (config_index + 1) % len(config["RUN_CONFIGURATIONS"])
+        if config_index >= len(config["RUN_CONFIGURATIONS"]) - 1:
+            first_run = False
 
 
 # ===== Example usage =====
