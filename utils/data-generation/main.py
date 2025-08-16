@@ -115,15 +115,18 @@ def ensure_folder_structure():
 
 
 def main():
+    first_run = True
+
     while True:
         blob = generate_text_blob(config["NUM_SENTENCES"], config["NUM_PARAGRAPHS"])
 
-        print("\n")
-        input("Press enter when you're ready")
+        print("You'll be prompted with one or multiple paragraphs of randomly generated text. When you're done reading, press the enter key")
+        input("Press enter when you're ready\n")
+        print("\n\n\n")
 
         start = time.time() * 1000
         print(blob)
-        input()
+        input("\n\n\n")
         end = time.time() * 1000
         start = start // 1
         end = end // 1
