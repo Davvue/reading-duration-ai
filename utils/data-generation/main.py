@@ -4,6 +4,8 @@ import re
 from collections import defaultdict
 import os
 import json
+import time
+from uuid import uuid4
 
 config = {
 	"RESULT_AUTHOR": "",
@@ -35,8 +37,6 @@ def load_config(json_file):
     for key in config.keys():
         if key in json_config:
             config[key] = json_config[key]
-    
-    print(config)
 
 def load_corpus(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
@@ -88,6 +88,14 @@ def generate_text_blob(
     
     return "\n\n".join(paragraphs)
 
+def write_text_blob(blob):
+    file_name = f"{uuid4()}.txt"
+    file_path = os.path.join(config["DATA_DIRECTORY"], file_name)
+    with open(file_path, "w") as f:
+        f.write(blob)
+
+    return (file_path, file_name)
+
 def write_result_line(file_path, start, end):
     with open(os.path.join(config["RESULT_DIRECTORY"], config["RESULT_FILE"]), "a") as f:
         writer = csv.writer(f)
@@ -105,8 +113,30 @@ def ensure_folder_structure():
             writer = csv.writer(f)
             writer.writerow(config["RESULT_ENTRIES"])
 
+
+def main():
+    while True:
+        blob = generate_text_blob(config["NUM_SENTENCES"], config["NUM_PARAGRAPHS"])
+
+        print("\n")
+        input("Press enter when you're ready")
+
+        start = time.time() * 1000
+        print(blob)
+        input()
+        end = time.time() * 1000
+        start = start // 1
+        end = end // 1
+
+        file_path, file_name = write_text_blob(blob)
+        write_result_line(file_path, start, end)
+
+        if input("Continue? [Y]es/[N]o ").lower() == "n":
+            break
+
+
 # ===== Example usage =====
 if __name__ == "__main__":
     load_config("./config.json")
     ensure_folder_structure()
-    print(generate_text_blob(config["NUM_SENTENCES"], config["NUM_PARAGRAPHS"]))
+    main()
