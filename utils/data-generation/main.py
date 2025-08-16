@@ -24,14 +24,9 @@ config = {
 	"CHAIN_ORDER": 3,
 	"MIN_SENTENCE_LEN": 8,
 	"MAX_SENTENCE_LEN": 30,
-	"RUN_CONFIGURATIONS": [
-		{
-			"SENTENCES": 5,
-			"PARAGRAPHS": 1
-		}
-	],
+	"RUN_CONFIGURATIONS": [],
 	"NUM_SENTENCES": 5,
-	"NUM_PARAGRAPHS": 1,
+	"NUM_PARAGRAPHS": 2,
 	"PARAGRAPH_SENTENCE_VARIATION": 2
 }
 
@@ -80,9 +75,10 @@ def generate_sentence(chain, words, order):
 
 def generate_text_blob(
     num_sentences,
-    num_paragraphs
+    num_paragraphs,
+    corpus_file
 ):
-    corpus = load_corpus(config["CORPUS_FILE"])
+    corpus = load_corpus(corpus_file)
     chain, words = build_markov_chain(corpus, config["CHAIN_ORDER"])
     
     paragraphs = []
@@ -128,11 +124,12 @@ def main():
     print(f"After the first batch of configured runs, you can choose to quit or continue after each run.\n")
 
     while True:
-        current_config = config["RUN_CONFIGURATIONS"][config_index]
+        current_config = config["RUN_CONFIGURATIONS"][config_index] if len(config["RUN_CONFIGURATIONS"]) > 0 else {}
 
         blob = generate_text_blob(
             current_config.get("SENTENCES", config["NUM_SENTENCES"]),
-            current_config.get("PARAGRAPHS", config["NUM_PARAGRAPHS"])
+            current_config.get("PARAGRAPHS", config["NUM_PARAGRAPHS"]),
+            current_config.get("CORPUS", config["CORPUS_FILE"])
         )
 
         print("You'll be prompted with one or multiple paragraphs of randomly generated text. When you're done reading, press the enter key")
@@ -149,13 +146,12 @@ def main():
         file_path, file_name = write_text_blob(blob)
         write_result_line(file_path, start, end)
 
+        config_index = (config_index + 1) % len(config["RUN_CONFIGURATIONS"]) if len(config["RUN_CONFIGURATIONS"]) > 0 else 0
+        if first_run and config_index == 0:
+            first_run = False
 
         if not first_run and input("Continue? [Y]es/[N]o ").lower() == "n":
             break
-
-        config_index = (config_index + 1) % len(config["RUN_CONFIGURATIONS"])
-        if config_index >= len(config["RUN_CONFIGURATIONS"]) - 1:
-            first_run = False
 
 
 # ===== Example usage =====
